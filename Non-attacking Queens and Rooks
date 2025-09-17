@@ -1,0 +1,68 @@
+def count(board_size, queen_count, rook_count):
+    if not isinstance(board_size, int):
+        raise ValueError("Board size must be an integer")
+    if not isinstance(queen_count, int):
+        raise ValueError("Queen count must be an integer")
+    if not isinstance(rook_count, int):
+        raise ValueError("Rook count must be an integer")
+        # make sure  the total number of queens and rooks isn't bigger than the board size
+    if queen_count + rook_count > board_size:
+        return 0
+
+
+    if queen_count > 0 or rook_count > 0:
+        return count_helper(board_size, queen_count, rook_count, 0, set(), set(), set())
+
+
+def count_helper(board_size, q_left, r_left, row, cols_used, diag1_used, diag2_used):
+    # If there aren't queens to place, start placing rooks
+
+    # If no more pieces to place (all rooks placed), that means that this config is valid
+    if q_left == 0 and r_left == 0:
+        return 1
+
+    # If we've gone more than the number of rows, it's invalid
+    if row >= board_size:
+        return 0
+
+    total_ways = 0
+
+    # Try placing pieces in each column for the current row
+    for col in range(board_size):
+
+        # Try placing a queen if it's safe (no conflicts in columns or diagonals)
+        if q_left > 0 and col not in cols_used and (row - col) not in diag1_used and (row + col) not in diag2_used:
+            new_cols = cols_used.copy()
+            new_diag1_used = diag1_used.copy()
+            new_diag2_used = diag2_used.copy()
+            total_ways += count_helper(
+                board_size,
+                q_left - 1,
+                r_left,
+                row + 1,
+                new_cols | {col},
+                new_diag1_used | {row - col},
+                new_diag2_used | {row + col},
+            )
+        else:
+
+            if q_left == 0 and r_left > 0:  # If placing a rook, check if the column is not already occupied
+                if col not in cols_used:
+                    if (row - col) not in diag1_used and (row + col) not in diag2_used:
+
+                        new_cols = cols_used.copy()
+                        total_ways += count_helper(
+                            board_size,
+                            q_left,
+                            r_left - 1,
+                            row + 1,
+                            new_cols | {col},
+                            diag1_used,
+                            diag2_used
+                        )
+
+    return total_ways
+
+print(count(4,4,0))
+print(count(4,2,2))
+print(count(4, 2, 1))
